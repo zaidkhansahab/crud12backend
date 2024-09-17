@@ -19,7 +19,7 @@ app.use(cors());
 // Create a new Razorpay instance
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 // Routes
@@ -37,7 +37,7 @@ app.post('/api/payment/order', async (req, res) => {
 
   try {
     const order = await razorpayInstance.orders.create(options);
-    res.status(201).json(order);
+    res.status(201).json(order); // Return the order object
   } catch (error) {
     console.error('Error creating order:', error);
     res.status(500).json({ message: 'Unable to create order', error });
@@ -47,6 +47,7 @@ app.post('/api/payment/order', async (req, res) => {
 // Endpoint to verify payment
 app.post('/api/payment/verify', (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
   const body = razorpay_order_id + "|" + razorpay_payment_id;
 
   const expectedSignature = crypto
@@ -55,9 +56,11 @@ app.post('/api/payment/verify', (req, res) => {
     .digest('hex');
 
   if (expectedSignature === razorpay_signature) {
-    res.status(200).json({ message: 'Payment verification successful' });
+    // Successful verification
+    res.status(200).json({ message: 'Payment verification successful', success: true });
   } else {
-    res.status(400).json({ message: 'Invalid signature' });
+    // Verification failed
+    res.status(400).json({ message: 'Invalid signature', success: false });
   }
 });
 
